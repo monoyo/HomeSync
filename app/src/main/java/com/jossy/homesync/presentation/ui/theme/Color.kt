@@ -1,4 +1,4 @@
-package com.jossy.homesync.ui.theme
+package com.jossy.homesync.presentation.ui.theme
 
 import androidx.compose.ui.graphics.Color
 
