@@ -115,8 +115,9 @@ class BluetoothController(
 				if (accepted)
 					emit(ConnectionResult.ConnectionEstablished)
 			}
+
 		}
-	}
+	}.flowOn(Dispatchers.IO)
 
 	private fun awaitForAcceptation(): Boolean {
 		while (shouldLoop) {
