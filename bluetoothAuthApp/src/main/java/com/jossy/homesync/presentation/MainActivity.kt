@@ -1,7 +1,10 @@
 package com.jossy.homesync.presentation
 
 import android.Manifest
+import android.annotation.SuppressLint
 import android.bluetooth.BluetoothAdapter
+import android.bluetooth.BluetoothDevice
+import android.bluetooth.BluetoothGattCallback
 import android.bluetooth.BluetoothManager
 import android.content.Intent
 import android.os.Build
@@ -36,6 +39,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.jossy.homesync.datasource.local.data.ConnectionResult
+import com.jossy.homesync.datasource.local.data.VisibleBluetoothDevice
 import com.jossy.homesync.extensions.getBluetoothAdapter
 import com.jossy.homesync.extensions.hasPermission
 import com.jossy.homesync.extensions.registerBluetoothReceiver
@@ -44,7 +49,6 @@ import com.jossy.homesync.extensions.unregisterBluetoothReceiver
 import com.jossy.homesync.extensions.unregisterBluetoothStateReceiver
 import com.jossy.homesync.presentation.MainActivity.Companion.TAG
 import com.jossy.homesync.presentation.ui.theme.HomeSyncTheme
-import com.jossy.homesync.tools.bluetooth.data.BluetoothDevice
 import com.jossy.homesync.viewmodel.BluetoothViewModel
 
 class MainActivity : ComponentActivity() {
@@ -111,7 +115,13 @@ class MainActivity : ComponentActivity() {
 			{ broadcastReceiver -> registerBluetoothReceiver(broadcastReceiver) },
 			{ broadcastReceiver -> unregisterBluetoothReceiver(broadcastReceiver) },
 			{ bluetoothStateReceiver -> registerBluetoothStateReceiver(bluetoothStateReceiver) },
-			{ bluetoothStateReceiver -> unregisterBluetoothStateReceiver(bluetoothStateReceiver) })
+			{ bluetoothStateReceiver -> unregisterBluetoothStateReceiver(bluetoothStateReceiver) },
+			{ device, gattCallback -> connectGatt(device, gattCallback) })
+	}
+
+	@SuppressLint("MissingPermission")
+	private fun connectGatt(device: BluetoothDevice, gattCallback: BluetoothGattCallback) {
+		device.connectGatt(this, true, gattCallback)
 	}
 }
 
@@ -122,59 +132,29 @@ fun HomeSyncMainActivityScreen(
 
 	val state by bluetoothViewModel.state.collectAsState()
 	val context = LocalContext.current
-	LaunchedEffect(key1 = state.errorMessage) {
-		state.errorMessage?.let { message ->
-			Toast.makeText(
-				context,
-				message,
-				Toast.LENGTH_LONG
-			).show()
-			Log.e(TAG, message)
+	LaunchedEffect(key1 = state.connectionResult) {
+		when (state.connectionResult) {
+			is ConnectionResult.Error -> (state.connectionResult as ConnectionResult.Error).message.let { message ->
+				Toast.makeText(
+					context,
+					message,
+					Toast.LENGTH_LONG
+				).show()
+				Log.e(TAG, message)
+			}
+
+			else -> {}
 		}
+
 	}
 	Surface(
 		modifier = Modifier.fillMaxSize(),
 		color = MaterialTheme.colorScheme.background
 	) {
 		Column {
-			Row(
-				horizontalArrangement = Arrangement.SpaceAround,
-				verticalAlignment = Alignment.Bottom
-			) {
-				Button(
-					onClick = { bluetoothViewModel.startScan() },
-					Modifier
-						.padding(16.dp)
-						.fillMaxWidth(0.5f)
-				) {
-					Text(text = "Start Scan")
-				}
-				Button(
-					onClick = { bluetoothViewModel.stopScan() },
-					Modifier
-						.padding(16.dp)
-						.fillMaxWidth()
-				) {
-					Text(text = "Stop Scan")
-				}
-			}
-			Button(
-				onClick = { bluetoothViewModel.waitForIncomingConnections() },
-				Modifier
-					.padding(16.dp)
-					.fillMaxWidth()
-			) {
-				Text(text = "Start Server")
-			}
-			LaunchedEffect(key1 = state.isConnected) {
-				Toast.makeText(
-					context,
-					"Working. You're connected!",
-					Toast.LENGTH_LONG
-				).show()
-			}
-			when {
-				state.isConnecting -> Column(
+			Log.d(TAG,"${state.connectionResult}")
+			when(state.connectionResult) {
+				 ConnectionResult.Connecting -> Column(
 					modifier = Modifier.fillMaxSize(),
 					horizontalAlignment = Alignment.CenterHorizontally,
 					verticalArrangement = Arrangement.Center
@@ -184,7 +164,28 @@ fun HomeSyncMainActivityScreen(
 				}
 
 				else -> BluetoothDeviceList(state.pairedDevices, state.scannedDevices,
-					{ device: BluetoothDevice -> bluetoothViewModel.connectToDevice(device) })
+					{ device: VisibleBluetoothDevice -> bluetoothViewModel.connectToDevice(device) })
+			}
+			Row(
+				horizontalArrangement = Arrangement.Center,
+				verticalAlignment = Alignment.Bottom
+			) {
+				when(state.connectionResult) {
+					ConnectionResult.Scanning -> Button(
+						onClick = { bluetoothViewModel.stopScan() },
+						Modifier.padding(16.dp)
+					) {
+						Text(text = "Stop Scan")
+					}
+
+					else -> Button(
+						onClick = { bluetoothViewModel.startScan() },
+						Modifier.padding(16.dp)
+
+					) {
+						Text(text = "Start Scan")
+					}
+				}
 			}
 		}
 	}
@@ -192,9 +193,9 @@ fun HomeSyncMainActivityScreen(
 
 @Composable
 fun BluetoothDeviceList(
-	pairedDevices: List<BluetoothDevice>,
-	scannedDevices: List<BluetoothDevice>,
-	onClick: (BluetoothDevice) -> Unit,
+	pairedDevices: List<VisibleBluetoothDevice>,
+	scannedDevices: List<VisibleBluetoothDevice>,
+	onClick: (VisibleBluetoothDevice) -> Unit,
 	modifier: Modifier = Modifier
 ) {
 	LazyColumn(modifier = modifier.fillMaxHeight(0.8f)) {

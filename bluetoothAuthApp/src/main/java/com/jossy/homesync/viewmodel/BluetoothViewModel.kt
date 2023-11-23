@@ -1,16 +1,17 @@
 package com.jossy.homesync.viewmodel
 
 import android.bluetooth.BluetoothAdapter
+import android.bluetooth.BluetoothGattCallback
 import android.content.BroadcastReceiver
 import android.content.Intent
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.jossy.homesync.datasource.local.data.BluetoothDeviceAlias
 import com.jossy.homesync.datasource.local.data.BluetoothUiState
-import com.jossy.homesync.tools.bluetooth.connection.ConnectionResult
-import com.jossy.homesync.tools.bluetooth.controller.BluetoothController
-import com.jossy.homesync.tools.bluetooth.controller.BluetoothControllerI
-import com.jossy.homesync.tools.bluetooth.data.BluetoothDeviceAlias
-import com.jossy.homesync.tools.bluetooth.receiver.BluetoothStateReceiver
+import com.jossy.homesync.datasource.local.data.ConnectionResult
+import com.jossy.homesync.datasource.local.repository.bluetooth.BluetoothController
+import com.jossy.homesync.datasource.local.repository.bluetooth.BluetoothControllerI
+import com.jossy.homesync.datasource.local.repository.bluetooth.receiver.BluetoothStateReceiver
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.Flow
@@ -29,15 +30,21 @@ class BluetoothViewModel(
 	unregisterReceiver: (BroadcastReceiver) -> Unit,
 	registerBluetoothReceiver: (BluetoothStateReceiver) -> Intent?,
 	unregisterBluetoothReceiver: (BluetoothStateReceiver) -> Unit,
+	connectGatt: (android.bluetooth.BluetoothDevice, BluetoothGattCallback) -> Unit,
 	private val bluetoothController: BluetoothControllerI = BluetoothController(
 		bluetoothAdapter,
 		hasPermission,
 		registerReceiver,
 		unregisterReceiver,
 		registerBluetoothReceiver,
-		unregisterBluetoothReceiver
+		unregisterBluetoothReceiver,
+		connectGatt
 	)
 ) : ViewModel() {
+
+	init {
+		bluetoothController.updatePairedDevices()
+	}
 
 	private val _state = MutableStateFlow(BluetoothUiState())
 
@@ -46,11 +53,14 @@ class BluetoothViewModel(
 	val state = combine(
 		bluetoothController.scannedDevices,
 		bluetoothController.pairedDevices,
+		bluetoothController.connectionResult,
 		_state
-	) { scannedDevices, pairedDevices, state ->
+
+	) { scannedDevices, pairedDevices, connectionResult,  state ->
 		state.copy(
 			scannedDevices = scannedDevices,
-			pairedDevices = pairedDevices
+			pairedDevices = pairedDevices,
+			connectionResult = connectionResult
 		)
 	}.stateIn(
 		viewModelScope, SharingStarted.WhileSubscribed(5000), _state.value
@@ -59,18 +69,11 @@ class BluetoothViewModel(
 	fun startScan() {
 		bluetoothController.startDiscovery()
 		setConnectionFlow()
-		setErrorFlow()
 	}
 
 	private fun setConnectionFlow() {
-		bluetoothController.isConnected.onEach { isConnected ->
-			_state.update { it.copy(isConnected = isConnected) }
-		}.launchIn(viewModelScope)
-	}
-
-	private fun setErrorFlow() {
-		bluetoothController.errors.onEach { error ->
-			_state.update { it.copy(errorMessage = error) }
+		bluetoothController.connectionResult.onEach { isConnected ->
+			_state.update { it.copy(connectionResult = isConnected) }
 		}.launchIn(viewModelScope)
 	}
 
@@ -79,46 +82,15 @@ class BluetoothViewModel(
 	}
 
 	fun connectToDevice(device: BluetoothDeviceAlias) {
-		_state.update { it.copy(isConnecting = true) }
 		deviceConnectionJob = bluetoothController.connectToDevice(device, Dispatchers.IO)
 			.listen()
 	}
 
-	fun disconnectFromDevice() {
-		deviceConnectionJob?.cancel()
-		_state.update { it.copy(isConnecting = false, isConnected = false) }
-
-	}
-
-	fun waitForIncomingConnections() {
+	private fun Flow<ConnectionResult>.listen(): Job = onEach { result ->
 		_state.update {
 			it.copy(
-				isConnecting = true
+				connectionResult = result
 			)
-		}
-		deviceConnectionJob = bluetoothController.startBluetoothServer().listen()
-	}
-
-	fun Flow<ConnectionResult>.listen(): Job = onEach { result ->
-		when(result) {
-			ConnectionResult.ConnectionEstablished -> {
-				_state.update {
-					it.copy(
-						isConnected = true,
-						isConnecting = false,
-						errorMessage = null
-					)
-				}
-			}
-			is ConnectionResult.Error -> {
-				_state.update {
-					it.copy(
-						isConnected = false,
-						isConnecting = false,
-						errorMessage = result.message
-					)
-				}
-			}
 		}
 	}.launchIn(viewModelScope)
 

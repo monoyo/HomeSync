@@ -7,7 +7,7 @@ import android.content.BroadcastReceiver
 import android.content.IntentFilter
 import android.content.pm.PackageManager
 import androidx.activity.ComponentActivity
-import com.jossy.homesync.tools.bluetooth.receiver.BluetoothStateReceiver
+import com.jossy.homesync.datasource.local.repository.bluetooth.receiver.BluetoothStateReceiver
 
 
 fun ComponentActivity.getBluetoothManager(): BluetoothManager? =
