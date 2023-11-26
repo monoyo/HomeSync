@@ -25,12 +25,8 @@ cbluetoothAuthApp/src/main/java/com/jossy/homesync/tools/bluetooth/controller/Bl
 dbluetoothAuthApp/src/main/java/com/jossy/homesync/tools/bluetooth/receiver/BluetoothStateReceiver.kt,b\4\b4a9e4e8814b9adc30cf480c2370f04a3fb21b96
 Ç
 RWifiAuthApp/src/main/java/com/jossy/wifiauthapp/presentation/FindDeviceActivity.kt,8\1\8110b435a31db5cf41fb555d5619b935e14555f1
-â
-YWifiAuthApp/src/main/java/com/jossy/wifiauthapp/presentation/screen/ProvideWifiiScreen.kt,b\8\b8ba17b925089e0f5c54797678a9fabc7b346aad
 L
 WifiAuthApp/build.gradle.kts,e\8\e8d14ebb74c16de102acf04facf99c24021bcfa4
-~
-NWifiAuthApp/src/main/java/com/jossy/wifiauthapp/viewmodel/ProvideWifiScreen.kt,f\f\ff765c4b49188325768dafa3ce25ebef2b1457a4
 p
 @WifiAuthApp/src/main/java/com/jossy/wifiauthapp/data/WifiData.kt,6\4\64b2bfddc9541186cd18f5fb065d9f24e237bd07
 â
@@ -57,13 +53,9 @@ UWifiAuthApp/src/main/java/com/jossy/wifiauthapp/presentation/navigation/WifiScr
 XWifiAuthApp/src/main/java/com/jossy/wifiauthapp/presentation/screen/WifiDevicesScreen.kt,9\f\9f0dc74936c78f8ac7e56284d463a687a544088b
 Å
 QWifiAuthApp/src/main/java/com/jossy/wifiauthapp/viewmodel/WifiDevicesViewModel.kt,e\4\e4e20c99067a3b6fdd72b6e88d8e8e0dda896070
-Ç
-RWifiAuthApp/src/main/java/com/jossy/wifiauthapp/viewmodel/ProvideWifiNavigation.kt,4\c\4cd396fec7ec557934c0d325110329d27dbdf47b
 Å
 QWifiAuthApp/src/main/java/com/jossy/wifiauthapp/viewmodel/ProvideWifiViewModel.kt,d\e\dee3964c0fe14d31b09b32171fd74b24a28fa3fa
 x
 HWifiAuthApp/src/main/java/com/jossy/wifiauthapp/extensions/Extensions.kt,8\7\87425d9bb8b19430799524e416f3f444e1d2609a
-
-OWifiAuthApp/src/main/java/com/jossy/wifiauthapp/controller/ControllerActions.kt,1\b\1b8f954cfb706915543595bb624444b743c1074a
 É
 SWifiAuthApp/src/main/java/com/jossy/wifiauthapp/controller/WifiControllerActions.kt,8\2\827198a1a475dfa20522377fa12d4c1f763e5035
