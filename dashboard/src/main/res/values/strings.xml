@@ -1,0 +1,7 @@
+<resources>
+    <string name="app_name">HomeSync Dashboard</string>
+    <string name="my_devices">My Devices</string>
+    <string name="no_devices">Looks like you not added any device yet!</string>
+    <string name="add_device_button">Add button</string>
+    <string name="icon">Icon</string>
+</resources>

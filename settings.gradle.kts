@@ -16,3 +16,5 @@ dependencyResolutionManagement {
 rootProject.name = "HomeSync"
 include(":bluetoothAuthApp")
 include(":WifiAuthApp")
+include(":dashboard")
+include(":device")

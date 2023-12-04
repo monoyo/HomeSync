@@ -9,7 +9,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
 class DeviceRepository(val dispatcher: CoroutineDispatcher = Dispatchers.IO) : DeviceRepositoryI {
-	private val url = "http://192.168.104.23:8081/"
+	private val url = "http://192.168.124.23:8081/"
 	override fun switchOn() {
 		val data = SonoffStateBody(
 			"g1xw1a0M07npfSkP5gLn2w==",
