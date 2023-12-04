@@ -6,6 +6,7 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.IntentFilter
 import android.content.pm.PackageManager
+import android.net.nsd.NsdManager
 import android.net.wifi.p2p.WifiP2pManager
 import android.os.Build
 import android.os.Bundle
@@ -21,11 +22,13 @@ import com.jossy.wifiauthapp.presentation.ui.theme.HomeSyncTheme
 
 class FindDeviceActivity : ComponentActivity(), WifiControllerActions {
 	private lateinit var wifiController: WifiControllerI
+	private lateinit var manager: NsdManager
 	override fun onCreate(savedInstanceState: Bundle?) {
 		super.onCreate(savedInstanceState)
 		setContent {
 			HomeSyncTheme {
 				WifiAuthNavigation()
+				/*UDPSender.makeSend()*/
 			}
 		}
 		initWifiController()
@@ -69,16 +72,16 @@ class FindDeviceActivity : ComponentActivity(), WifiControllerActions {
 
 			else -> {
 				requestPermissions(
-					if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-						arrayOf(Manifest.permission.NEARBY_WIFI_DEVICES,
+					if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+						arrayOf(
+							Manifest.permission.NEARBY_WIFI_DEVICES,
 							Manifest.permission.ACCESS_FINE_LOCATION
 						)
 					} else {
 						arrayOf(
 							Manifest.permission.ACCESS_FINE_LOCATION
 						)
-					}
-					, REQUEST_PERMISSION_NEARBY_WIFI_DEVICES_ACCESS_FINE_LOCATION
+					}, REQUEST_PERMISSION_NEARBY_WIFI_DEVICES_ACCESS_FINE_LOCATION
 				)
 				onClickRequestPermission()
 			}
